@@ -1,0 +1,4 @@
+argparse
+kubernetes==21.7.0
+pint
+numpy

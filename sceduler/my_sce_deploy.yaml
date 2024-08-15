@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: scheduler
+    tier: control-plane
+  name: my-scheduler
+  labels:
+    component: scheduler
+    tier: control-plane
+  name: my-scheduler
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      component: scheduler
+      tier: control-plane
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: scheduler
+        tier: control-plane
+        version: second
+    spec:
+      serviceAccountName: my-scheduler
+      containers:
+      - command:
+        - python3
+        - myscheduler.py
+        - --scheduler-name=myscheduler
+        name: customkubescheduler-python
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/my-kube-scheduler:v1.0.0
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "256m"
+          limits:
+            memory: "512Mi"
+        volumeMounts:
+        - mountPath: app/algorithm.py
+          name: alo
+          subPath: algorithm.py
+        - mountPath: app/myscheduler.py
+          name: scedulercode
+          subPath: myscheduler.py
+      volumes:
+      - name: scedulercode
+        configMap:
+          name: scedulercode
+          defaultMode: 420
+      - name: alo
+        configMap:
+          name: alo
+          defaultMode: 420
+
+
+
+

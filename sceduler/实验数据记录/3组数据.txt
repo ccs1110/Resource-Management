@@ -1,0 +1,69 @@
+node1
+cpu alloc 2 dimensionless
+mem alloc 1.7788963317871094 Gi
+cpu free 1.960055999 dimensionless
+mem free 1.5212326049804688 Gi
+node2
+cpu alloc 1 dimensionless
+mem alloc 0.9517250061035156 Gi
+cpu free 0.978947048 dimensionless
+mem free 0.6922416687011719 Gi
+node3
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.972821428 dimensionless
+mem free 1.1847877502441406 Gi
+node4
+cpu alloc 2 dimensionless
+mem alloc 0.9517478942871094 Gi
+cpu free 1.960808165 dimensionless
+mem free 0.6842079162597656 Gi
+node5
+cpu alloc 2 dimensionless
+mem alloc 1.4439353942871094 Gi
+cpu free 1.964250387 dimensionless
+mem free 1.1629562377929688 Gi
+node6
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.983496202 dimensionless
+mem free 1.1830406188964844 Gi
+
+--------------------------------
+2.806669960316406   
+-----------------------------------
+yace-deploy-5f84b54487-d97qc    799m         64Mi            
+yace-deploy2-54597c56dd-fpmlh   801m         32Mi            
+yace-deploy2-54597c56dd-jgqcz   800m         32Mi            
+yace-deploy3-776cb89bfd-vhq8s   100m         64Mi
+------------------------------------------------------
+node1
+cpu alloc 2 dimensionless
+mem alloc 1.7788963317871094 Gi
+cpu free 0.892385733 dimensionless
+mem free 1.2202644348144531 Gi
+node2
+cpu alloc 1 dimensionless
+mem alloc 0.9517250061035156 Gi
+cpu free 0.983567691 dimensionless
+mem free 0.6922378540039062 Gi
+node3
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.976836627 dimensionless
+mem free 1.1847801208496094 Gi
+node4
+cpu alloc 2 dimensionless
+mem alloc 0.9517478942871094 Gi
+cpu free 0.4023507719999999 dimensionless
+mem free 0.5199775695800781 Gi
+node5
+cpu alloc 2 dimensionless
+mem alloc 1.4439353942871094 Gi
+cpu free 0.4082355919999998 dimensionless
+mem free 1.0051727294921875 Gi
+node6
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.983094753 dimensionless
+mem free 1.1830482482910156 Gi

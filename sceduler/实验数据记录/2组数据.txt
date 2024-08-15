@@ -1,0 +1,71 @@
+
+node1
+cpu alloc 2 dimensionless
+mem alloc 1.7788963317871094 Gi
+cpu free 1.953020939 dimensionless
+mem free 1.4879226684570312 Gi
+node2
+cpu alloc 1 dimensionless
+mem alloc 0.9517250061035156 Gi
+cpu free 0.978833951 dimensionless
+mem free 0.6934738159179688 Gi
+node3
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.971912279 dimensionless
+mem free 1.1850967407226562 Gi
+node4
+cpu alloc 2 dimensionless
+mem alloc 0.9517478942871094 Gi
+cpu free 1.957322875 dimensionless
+mem free 0.6732711791992188 Gi
+node5
+cpu alloc 2 dimensionless
+mem alloc 1.4439353942871094 Gi
+cpu free 1.957422939 dimensionless
+mem free 1.1390342712402344 Gi
+node6
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.972521617 dimensionless
+mem free 1.1834030151367188 Gi
+
+-------------------------------------------------------
+2.9328754440097655
+-------------------------------------------------------
+NAME                            CPU(cores)   MEMORY(bytes)   
+yace-deploy-5f84b54487-2qm8t    801m         64Mi            
+yace-deploy-5f84b54487-gv2mr    801m         64Mi            
+yace-deploy2-54597c56dd-tffgt   793m         32Mi 
+--------------------------------------------------------------
+node1
+cpu alloc 2 dimensionless
+mem alloc 1.7788963317871094 Gi
+cpu free 1.068746677 dimensionless
+mem free 1.1543350219726562 Gi
+node2
+cpu alloc 1 dimensionless
+mem alloc 0.9517250061035156 Gi
+cpu free 0.983922485 dimensionless
+mem free 0.6934471130371094 Gi
+node3
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.983976759 dimensionless
+mem free 1.1766510009765625 Gi
+node4
+cpu alloc 2 dimensionless
+mem alloc 0.9517478942871094 Gi
+cpu free 0.40333932299999997 dimensionless
+mem free 0.4550666809082031 Gi
+node5
+cpu alloc 2 dimensionless
+mem alloc 1.4439353942871094 Gi
+cpu free 1.037411562 dimensionless
+mem free 0.8223495483398438 Gi
+node6
+cpu alloc 1 dimensionless
+mem alloc 1.4439125061035156 Gi
+cpu free 0.981397162 dimensionless
+mem free 1.183380126953125 Gi
+

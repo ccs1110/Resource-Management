@@ -1,0 +1,111 @@
+apiVersion: v1
+data:
+  myscheduler.py: "import kubernetes as k8s\r\nimport algorithm\r\nimport argparse\r\nimport
+    re\r\nimport json\r\nfrom kubernetes import client, watch\r\nfrom kubernetes.client.rest
+    import ApiException\r\nfrom collections import defaultdict\r\nfrom pint import
+    UnitRegistry\r\n\r\n\r\n#k8s.config.load_kube_config()\r\nk8s.config.load_incluster_config()\r\nv1
+    = client.CoreV1Api()\r\napi_client = client.ApiClient()\r\n\r\n\r\nureg = UnitRegistry()\r\nureg.load_definitions('kubernetes_units.txt')\r\nQ_
+    = ureg.Quantity\r\n\r\nparser = argparse.ArgumentParser(description='My scheduler
+    name has been initialized')\r\nparser.add_argument('--scheduler-name', type=str,
+    default=None)  # 添加变量\r\nargs = parser.parse_args()\r\n\r\nclass Pod(object):\r\n\r\n
+    \   def __init__(self):\r\n        self.name = 'podName'\r\n        self.cpuReqs
+    = 0.0\r\n        self.memReqs = 0.0\r\n        self.cpuLmt = 0.0\r\n        self.memLmt
+    = 0.0\r\n    pass\r\n\r\n\r\nclass Node(object):\r\n\r\n    def __init__(self):\r\n
+    \       self.name = 'nodeName'\r\n        self.cpuAlloc = 0.0\r\n        self.memAlloc
+    = 0.0\r\n        self.cpuFree = 0.0\r\n        self.memFree = 0.0\r\n        self.maxPodNum
+    = 0.0\r\n    pass\r\n\r\n\r\ndef get_pod_resource(pod):\r\n    PodReqs = {'cpu_reqs_sum':
+    0, 'mem_reqs_sum': 0}\r\n    PodLmt = {'cpu_lmt_sum': 0, 'mem_lmt_sum': 0}\r\n
+    \   for container in pod['spec']['containers']:\r\n        res = container['resources']\r\n
+    \       reqs = defaultdict(lambda: 0, res['requests'] or {})\r\n        lmts =
+    defaultdict(lambda: 0, res['limits'] or {})\r\n        PodReqs['cpu_reqs_sum']
+    = Q_(reqs['cpu']) + PodReqs['cpu_reqs_sum']\r\n        PodReqs['mem_reqs_sum']
+    = Q_(reqs['memory']) + PodReqs['mem_reqs_sum']\r\n        PodLmt['cpu_lmt_sum']
+    = Q_(lmts['cpu']) + PodLmt['cpu_lmt_sum']\r\n        PodLmt['mem_lmt_sum'] = Q_(lmts['memory'])
+    + PodLmt['mem_lmt_sum']\r\n    return PodReqs, PodLmt\r\n\r\n\r\ndef get_node():\r\n
+    \   # 存放所有节点对象\r\n    nodeList = []\r\n    # 获取所有节点\r\n    nodeInstance = v1.list_node()\r\n
+    \   # 存放可用节点的节点名称\r\n    useNodeName = []\r\n    # 存放API获取的资源信息\r\n    NodeApilist
+    = []\r\n    for i in nodeInstance.items:\r\n        print(i.metadata.name)\r\n
+    \       if (i.status.conditions[-1].status == \"True\" and\r\n                i.status.conditions[-1].type
+    == \"Ready\" and\r\n                i.metadata.name not in [\"master\", \"kctd\"]):\r\n
+    \           print(i.metadata.name)\r\n            useNodeName.append(i.metadata.name)\r\n
+    \   pass\r\n    useNodeName.sort(key=None, reverse=False)\r\n    # 此处通过metrics
+    API获得每个node已经使用的cpu和mem\r\n    ret_metrics = api_client.call_api('/apis/metrics.k8s.io/v1beta1/nodes',
+    'GET', auth_settings=['BearerToken'], response_type='json', _preload_content=False)\r\n
+    \   response = json.loads(ret_metrics[0].data.decode('utf-8'))\r\n    for item
+    in response['items']:\r\n        NodeApilist.append(item['metadata']['name'])\r\n\r\n
+    \   # 创建node对象并对其元素初始化\r\n    for i in range(len(useNodeName)):\r\n        locals()['node_'
+    + str(i)] = Node()\r\n        locals()['node_' + str(i)].name = useNodeName[i]\r\n
+    \       locals()['node_' + str(i)].cpuAlloc = Q_('0') + Q_(v1.read_node_status(locals()['node_'
+    + str(i)].name).status.allocatable['cpu'])\r\n        locals()['node_' + str(i)].maxPodNum
+    = int(int(v1.read_node_status(locals()['node_' + str(i)].name).status.allocatable['pods'])
+    * 1.5)\r\n        locals()['node_' + str(i)].memAlloc = Q_('0 Gi') + Q_(v1.read_node_status(locals()['node_'
+    + str(i)].name).status.allocatable['memory'])\r\n        field_selector = (\"status.phase!=Succeeded,status.phase!=Failed,\"
+    + \"spec.nodeName=\" + locals()['node_' + str(i)].name)\r\n\r\n        # pods
+    = v1.list_pod_for_all_namespaces(limit=locals()['node_' + str(i)].maxPodNum, field_selector=field_selector).to_dict()['items']\r\n
+    \       # sumPodReqs, sumPodLmt = get_pods_resource(pods)\r\n        # locals()['node_'
+    + str(i)].cpuFree = Q_('0') + locals()['node_' + str(i)].cpuAlloc - sumPodReqs['cpu_reqs_sum']\r\n
+    \       # locals()['node_' + str(i)].memFree = Q_('0 Gi') + locals()['node_' +
+    str(i)].memAlloc - sumPodReqs['mem_reqs_sum']\r\n        index = NodeApilist.index(locals()['node_'
+    + str(i)].name)\r\n        locals()['node_' + str(i)].cpuFree = Q_('0') + Q_(locals()['node_'
+    + str(i)].cpuAlloc) - Q_(response['items'][index]['usage']['cpu'])\r\n        locals()['node_'
+    + str(i)].memFree = Q_('0 Gi') + Q_(locals()['node_' + str(i)].memAlloc) - Q_(response['items'][index]['usage']['memory'])\r\n
+    \       nodeList.append(locals()['node_' + str(i)])\r\n    return nodeList\r\n\r\n\r\ndef
+    get_schedule_queue():\r\n    i = 0\r\n    queue = []\r\n    queuePodName = []\r\n
+    \   try:\r\n        pods = v1.list_pod_for_all_namespaces()\r\n        print(\"Successfully
+    retrieved all pods.\")\r\n    except ApiException as e:\r\n        print(f\"Exception
+    when calling CoreV1Api->list_pod_for_all_namespaces: {e}\")\r\n        print(f\"Status:
+    {e.status}\")\r\n        print(f\"Reason: {e.reason}\")\r\n        print(f\"Body:
+    {e.body}\")\r\n        return queue  # Return an empty queue in case of exception\r\n\r\n
+    \   try:\r\n        # 获取需要调度的pod，也就是处于pending状态的pod\r\n        for pod in pods.items:\r\n
+    \           print(pod.metadata.name+'---'+pod.status.phase+'---'+(str)(pod.spec.node_name
+    is None)+'---'+pod.spec.scheduler_name)\r\n            if (pod.status.phase ==
+    'Pending' and \r\n                pod.spec.node_name is None and \r\n                pod.spec.scheduler_name
+    == args.scheduler_name):\r\n                queuePodName.append(pod.metadata.name)\r\n
+    \               locals()['schedulingPod' + str(i)] = Pod()\r\n                locals()['schedulingPod'
+    + str(i)].name = queuePodName[-1]\r\n                PodReqs, PodLmt = get_pod_resource(pod.to_dict())\r\n
+    \               locals()['schedulingPod' + str(i)].cpuReqs = Q_('0') + PodReqs['cpu_reqs_sum']\r\n
+    \               locals()['schedulingPod' + str(i)].memReqs = Q_('0 Gi') + PodReqs['mem_reqs_sum']\r\n
+    \               locals()['schedulingPod' + str(i)].cpuLmt = Q_('0') + PodLmt['cpu_lmt_sum']\r\n
+    \               locals()['schedulingPod' + str(i)].memLmt = Q_('0 Gi') + PodLmt['mem_lmt_sum']\r\n
+    \               queue.append(locals()['schedulingPod' + str(i)])\r\n                i
+    += 1\r\n    except Exception as e:\r\n        print(f\"Exception while processing
+    pods: {e}\")\r\n\r\n    return queue\r\n\r\n\r\n\r\n# Binding\r\ndef binding(NodeName,
+    PodName, namespace='default'):\r\n    target = client.V1ObjectReference(api_version='v1',
+    kind=\"Node\", name=NodeName)\r\n    meta = client.V1ObjectMeta()\r\n    meta.name
+    = PodName\r\n    body = client.V1Binding(metadata=meta, target=target)\r\n    return
+    v1.create_namespaced_binding(namespace, body, _preload_content=False)\r\n\r\n\r\ndef
+    main():\r\n    w = watch.Watch()\r\n    for event in w.stream(v1.list_pod_for_all_namespaces):\r\n
+    \       try:\r\n            Queue = get_schedule_queue()\r\n            print(\"Queue:\",
+    Queue)\r\n            if len(Queue):\r\n                NodeList = get_node()\r\n
+    \               print(\"NodeList:\", NodeList)\r\n                for pod in Queue:\r\n
+    \                   try:\r\n                        pod.cpuReqs = float(re.split('
+    ', str(pod.cpuReqs))[0])\r\n                        pod.memReqs = float(re.split('
+    ', str(pod.memReqs))[0])\r\n                        pod.cpuLmt = float(re.split('
+    ', str(pod.cpuLmt))[0])\r\n                        pod.memLmt = float(re.split('
+    ', str(pod.memLmt))[0])\r\n                    except Exception as e:\r\n                        print(f\"Error
+    parsing pod resources: {e}\")\r\n\r\n                for node in NodeList:\r\n
+    \                   try:\r\n                        node.cpuAlloc = float(re.split('
+    ', str(node.cpuAlloc))[0])\r\n                        node.memAlloc = float(re.split('
+    ', str(node.memAlloc))[0])\r\n                        node.cpuFree = float(re.split('
+    ', str(node.cpuFree))[0])\r\n                        node.memFree = float(re.split('
+    ', str(node.memFree))[0])\r\n                    except Exception as e:\r\n                        print(f\"Error
+    parsing node resources: {e}\")\r\n\r\n                pod_num = len(Queue)\r\n
+    \               node_num = len(NodeList)\r\n                pso = algorithm.PSO(2,
+    2, 0.5, pod_num, 60, 120, node_num, node_num + 1, -10000000000000, 10000, 0.99,\r\n
+    \                                   NodeList, Queue)\r\n                try:\r\n
+    \                   global_best_fit_list, best_pos = pso.update()\r\n                    print(\"global_best_fit_list:\",
+    global_best_fit_list)\r\n                    print(\"best_pos:\", best_pos)\r\n
+    \               except Exception as e:\r\n                    print(f\"Error running
+    PSO algorithm: {e}\")\r\n\r\n                try:\r\n                    best_pos
+    = best_pos.astype(int)\r\n                    for i in range(len(Queue)):\r\n
+    \                       binding(NodeList[best_pos[0][i]].name, Queue[i].name)\r\n
+    \                       print(f\"Pod {Queue[i].name} bound to Node {NodeList[best_pos[0][i]].name}\")\r\n
+    \                   print(\"Scheduling has completed!\")\r\n                except
+    Exception as e:\r\n                    print(f\"Error during binding: {e}\")\r\n\r\n
+    \       except ApiException as e:\r\n            print(\"Error while scheduling:\",
+    e)\r\n\r\n\r\nif __name__ == '__main__':\r\n    main()\r\n\r\n\r\n"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: scedulercode
+  namespace: kube-system

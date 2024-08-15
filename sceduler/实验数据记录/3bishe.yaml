@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yace-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pressureMeasurement
+  template:
+    metadata:
+      labels:
+        app: pressureMeasurement
+    spec:
+      schedulerName: app
+      containers:
+      - command:
+        - memtester
+        - 32Mi
+        name: yacecont1
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/cjx_repository:1
+        resources:
+          limits: 
+            cpu: '400m'    
+            memory: '64Mi'  
+          requests:
+            cpu: '400m'    
+            memory: '32Mi'
+      - command:
+        - memtester
+        - 32Mi
+        name: yacecont2
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/cjx_repository:1
+        resources:
+          limits:
+            cpu: '400m'
+            memory: '64Mi'
+          requests:
+            cpu: '400m'
+            memory: '32Mi'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yace-deploy2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pressureMeasurement2
+  template:
+    metadata:
+      labels:
+        app: pressureMeasurement2
+    spec:
+      schedulerName: app
+      containers:
+      - command:
+        - memtester
+        - 32Mi
+        name: yacecont1
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/cjx_repository:1
+        resources:
+          limits: 
+            cpu: '800m'    
+            memory: '64Mi'  
+          requests:
+            cpu: '800m'    
+            memory: '32Mi'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yace-deploy3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pressureMeasurement3
+  template:
+    metadata:
+      labels:
+        app: pressureMeasurement3
+    spec:
+      schedulerName: app
+      containers:
+      - command:
+        - memtester
+        - 32Mi
+        name: yacecont1
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/cjx_repository:1
+        resources:
+          limits:
+            cpu: '50m'
+            memory: '64Mi'
+          requests:
+            cpu: '50m'
+            memory: '32Mi'
+      - command:
+        - memtester
+        - 32Mi
+        name: yacecont2
+        image: registry.cn-beijing.aliyuncs.com/cjx_repository/cjx_repository:1
+        resources:
+          limits:
+            cpu: '50m'
+            memory: '64Mi'
+          requests:
+            cpu: '50m'
+            memory: '32Mi'
+
